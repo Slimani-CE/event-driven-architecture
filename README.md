@@ -19,41 +19,14 @@
 ## Project Description
 This project aims to demonstrate real-time data analytics using Kafka and Spring Cloud Streams. It includes the setup of Kafka, a set of Spring Cloud Streams services, and a web application to visualize real-time analytics results.
 
-## Project Structure
-The project structure is organized as follows:
-```
-project-root
-├── src
-│ ├── main
-│ │ ├── java
-│ │ │ ├── com.silimanice.springcloudstreamskafka
-│ │ │ │ ├── SpringCloudStreamsKafkaApplication.java
-│ │ │ │ ├── entities
-│ │ │ │ │ ├── PageEvent.java
-│ │ │ │ ├── service
-│ │ │ │ │ ├── PageEventService.java
-│ │ │ │ ├── web
-│ │ │ │ │ ├── PageEventRestController.java
-│ ├── resources
-│ │ ├── application.properties
-├── test
-│ ├── java
-│ │ ├── com.silimanice.springcloudstreamskafka
-│ │ ├── SpringCloudStreamsKafkaApplicationTests.java
-```
-
 ## Getting Started
-### Dependencies
-List the dependencies used in your project. For example:
+![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
+![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-000?style=for-the-badge&logo=apachekafka)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 
-- Spring Boot
-- Spring Cloud Stream
-- Kafka
-- Docker
-- ...
-- 
 ### Downloading Kafka
-
 
 To get started, download Kafka and follow these steps:
 1. Start Zookeeper:
@@ -72,7 +45,11 @@ bin\windows\kafka-server-start.bat config\server.properties
 ![Kafka test](assets/kafka%20console%20test.png)
 *KAFKA Console Test*
 
-4. Creating a java spring consumer
+### Docker Setup
+
+
+## Spring Cloud Streams Services
+### 1. Creating a java spring consumer
 ```java
 @Bean
 public Consumer<PageEvent> pageEventConsumer() {
@@ -91,7 +68,7 @@ spring.cloud.function.definition=pageEventConsumer
 ![Spring Kafka Consumer](assets/kafka%20spring%20consumer.png)
 *Spring KAFKA Consumer*
 
-5. Create a java spring supplier
+### 2. Create a java spring supplier
 ```java
 @Bean
 public Supplier pageEventSupplier() {
@@ -111,7 +88,7 @@ spring.integration.poller.fixed-delay=100
 ![Kafka Supplier](assets/spring%20kafka%20supplier.gif)
 *Spring KAFKA Supplier*
 
-6. Create a java spring function that can supply and consume at the same time
+### 3. Create a java spring function that can supply and consume at the same time
 ```java
 @Bean
 public Function<PageEvent, PageEvent> pageEventFunction() {
@@ -128,48 +105,53 @@ spring.cloud.stream.bindings.pageEventFunction-in-0.destination=R1
 spring.cloud.stream.bindings.pageEventFunction-out-0.destination=R3
 spring.cloud.function.definition=pageEventFunction
 ```
+![Kafka Streaming](assets/spring%20kafka%20supplier%20and%20consumer.png)
+*Spring KAFKA Supplier and Consumer*
+
+### 4. A Kafka Streams function that filters and processes streaming data to count occurrences over 5-second windows and generate a new stream of results.
+```java
+@Bean
+public Function<KStream<String, PageEvent>, KStream<String, Long>> kStreamFunction() {
+   return (input) -> input
+   .filter((k, v) -> v.getDuration() > 100)   // Keep just pages with viewer duration > 100
+   .map((k, v) -> new KeyValue<>(v.getName(), 0L))
+   .groupBy((k, v) -> k, Grouped.with(Serdes.String(), Serdes.Long()))
+   .windowedBy(TimeWindows.of(Duration.ofSeconds(5)))
+   .count(Materialized.as("page-count"))
+   .toStream()
+   .map((k, v) -> new KeyValue<>("=>" + k.window().startTime() + " - " + k.window().endTime() + " - " + k.key(), v));
+}
+```
+- Application.properties
+```
+spring.cloud.function.definition=kStreamFunction
+spring.cloud.stream.kafka.streams.binder.configuration.commit.interval.ms=1000
+spring.cloud.stream.bindings.kStreamFunction-in-0.destination=R2
+spring.cloud.stream.bindings.kStreamFunction-out-0.destination=R4
+```
 ![Kafka Streaming](assets/kafka%20streaming.gif)
 *Spring KAFKA Streaming*
 
-[//]: # (### Docker Setup)
+### 5. Real-Time Data Analytics Web Service
+Periodically retrieving and mapping data from a Kafka Streams windowed store.
+```java
+@GetMapping(path = "/analytics", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+public Flux<Map<String, Long>> analytics() {
+  return Flux.interval(Duration.ofSeconds(1)).map(sequence -> {
+      Map<String, Long> stringLongMap = new HashMap<>();
+      ReadOnlyWindowStore<String, Long> windowStore = interactiveQueryService.getQueryableStore("page-count", QueryableStoreTypes.windowStore());
+      Instant now = Instant.now();
+      Instant from = now.minusSeconds(5);
+      KeyValueIterator<Windowed<String>, Long> fetchAll = windowStore.fetchAll(from, now);
+      while (fetchAll.hasNext()) {
+          KeyValue<Windowed<String>, Long> next = fetchAll.next();
+          stringLongMap.put(next.key.key(), next.value);
+      }
+      return stringLongMap;
+  }).share();
+}
+```
 
-[//]: # (Alternatively, you can use Docker to set up Kafka. Refer to [Confluent's Kafka Docker Quickstart]&#40;https://developer.confluent.io/quickstart/kafka-docker/&#41; or watch [this video]&#40;https://www.youtube.com/watch?v=9O1Kuk2xXO8&#41; for guidance.)
+### 6. Web Application for Displaying Stream Data Analytics Results
 
-[//]: # ()
-[//]: # (## Spring Cloud Streams Services)
-
-[//]: # (### Service Producer)
-
-[//]: # (- Code)
-
-[//]: # (- Screenshots)
-
-[//]: # (### Service Consumer)
-
-[//]: # (- Create a Kafka consumer service.)
-
-[//]: # ()
-[//]: # (### Service Supplier)
-
-[//]: # (- Develop a Kafka supplier service.)
-
-[//]: # ()
-[//]: # (### Data Analytics with Kafka Streams)
-
-[//]: # (- Build a real-time data analytics service using Kafka Streams.)
-
-[//]: # ()
-[//]: # (## Web Application)
-
-[//]: # (- Develop a web application to display real-time analytics results.)
-
-[//]: # ()
-[//]: # (## Project Directory Structure)
-
-[//]: # (Explain the project directory structure in detail.)
-
-[//]: # ()
-[//]: # ()
-[//]: # (## Screenshots)
-
-[//]: # (Include screenshots of the project's user interfaces or relevant components.)
+![Chart](assets/chart.png)
