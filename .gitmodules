@@ -1,0 +1,3 @@
+[submodule "front-end-module"]
+	path = front-end-module
+	url = https://github.com/Slimani-CE/real-time-streaming-front-end
