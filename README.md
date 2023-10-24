@@ -107,6 +107,7 @@ spring.cloud.stream.bindings.pageEventFunction-out-0.destination=R3
 spring.cloud.function.definition=pageEventFunction
 ```
 ![Kafka Streaming](assets/spring%20kafka%20supplier%20and%20consumer.png)
+
 *Spring KAFKA Supplier and Consumer*
 
 ### 4. A Kafka Streams function that filters and processes streaming data to count occurrences over 5-second windows and generate a new stream of results.
@@ -131,6 +132,7 @@ spring.cloud.stream.bindings.kStreamFunction-in-0.destination=R2
 spring.cloud.stream.bindings.kStreamFunction-out-0.destination=R4
 ```
 ![Kafka Streaming](assets/kafka%20streaming.gif)
+
 *Spring KAFKA Streaming*
 
 ### 5. Real-Time Data Analytics Web Service
@@ -154,5 +156,5 @@ public Flux<Map<String, Long>> analytics() {
 ```
 
 ### 6. Web Application for Displaying Stream Data Analytics Results
-
+To explore the frontend application's repository for real-time data analytics visualization, please visit: [Frontend Repository](https://github.com/Slimani-CE/real-time-streaming-front-end).
 ![Chart](assets/chart.png)
