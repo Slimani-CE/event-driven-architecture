@@ -4,8 +4,6 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-assets/kafka streaming.gif
-assets/spring kafka supplier.gif
 ### STS ###
 .apt_generated
 .classpath
