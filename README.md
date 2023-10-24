@@ -86,6 +86,7 @@ spring.cloud.function.definition=pageEventSupplier
 spring.integration.poller.fixed-delay=100
 ```
 ![Kafka Supplier](assets/spring%20kafka%20supplier.gif)
+
 *Spring KAFKA Supplier*
 
 ### 3. Create a java spring function that can supply and consume at the same time
