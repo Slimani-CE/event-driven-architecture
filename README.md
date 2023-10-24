@@ -66,6 +66,7 @@ bin\windows\kafka-server-start.bat config\server.properties
 ```
 ![Spring kafka supplier](assets/spring%20kafka%20supplier.gif)
 
+![Kafka Streaming](assets/kafka%20streaming.gif)
 [//]: # (### Docker Setup)
 
 [//]: # (Alternatively, you can use Docker to set up Kafka. Refer to [Confluent's Kafka Docker Quickstart]&#40;https://developer.confluent.io/quickstart/kafka-docker/&#41; or watch [this video]&#40;https://www.youtube.com/watch?v=9O1Kuk2xXO8&#41; for guidance.)
